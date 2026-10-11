@@ -137,3 +137,8 @@ def delete_wish(wish_id: int, authorization: str = Header(default="")):
         raise
     except Exception:
         raise HTTPException(status_code=503, detail="Could not delete this blessing.")
+
+
+@app.get("/")
+def root():
+    return {"ok": True, "message": "Wedding backend is running"}
