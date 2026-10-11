@@ -665,8 +665,9 @@ function AdminPage() {
 }
 
 export default function App() {
-  if (window.location.pathname.replace(/\\/+$/, '') === '/admin') {
-    return <AdminPage />
-  }
+if (window.location.pathname.replace(/\/+$/, '') === '/admin') {
+  return <AdminPage />
+}
+  
   return <WeddingInvite />
 }
