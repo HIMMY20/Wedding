@@ -303,7 +303,7 @@ function WeddingInvite() {
 
           <div style={{ margin: '18px 0' }}>
             <Photo
-              src={IMG.hero}
+              src="./HB.png"
               fallback={illustration}
             />
           </div>
