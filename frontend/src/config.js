@@ -40,5 +40,5 @@ export const EVENTS = [
 export const whatsapp = (text) => 'https://wa.me/?text=' + encodeURIComponent(text)
 
 // Separate backend deployment URL. Set VITE_API_BASE_URL in frontend Vercel settings.
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://backend-wedding-red.vercel.app').replace(/\/$/, '')
 export const apiUrl = (path) => `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`
