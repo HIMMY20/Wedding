@@ -1,0 +1,3 @@
+
+[tool.vercel]
+entrypoint = "wedding-backend.api.index:app"
