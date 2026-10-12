@@ -18,7 +18,7 @@ export const VENUE = {
   line2: 'Dist. Pali, Rajasthan',
   mapUrl:
     'https://www.google.com/maps/search/?api=1&query=' +
-    encodeURIComponent('Khaki Resort NH-162 Pali Rajasthan'),
+    encodeURIComponent(' NH. 162, Opp. HP Petrol Pump, Village Barr, Pali District, Beawar, Rajasthan 306105'),
 }
 
 export const CALENDAR_URL =

@@ -397,7 +397,7 @@ function WeddingInvite() {
           >
             Note: The baraat will depart on
             2 Dec 2026 at 5:30 AM from the residence
-            of Shri Hemrajji Rathore (Sojat City)
+            of Shri Yogeshji Chauhan (Marwad Junction)
             to Khaki Resort (Bar).
           </p>
         </Reveal>
@@ -509,7 +509,7 @@ function WeddingInvite() {
             </div>
 
             <p>
-              Thursday · Pali, Rajasthan
+              Thursday · Barr, Rajasthan
             </p>
 
             <a
