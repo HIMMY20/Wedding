@@ -3,24 +3,27 @@ import hmac
 import os
 import secrets
 import time
-from datetime import datetime, timezone
+from datetime import timezone
 
 import psycopg
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="Bhavesh & Heena Wedding Guestbook")
+app = FastAPI(title="Bhavesh & Heena Wedding Guestbook", version="1.0.0")
+
+def env_list(name, default=""):
+    return [x.strip().rstrip("/") for x in os.getenv(name, default).split(",") if x.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip().rstrip("/") for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if origin.strip()],
+    allow_origins=env_list("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"),
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 TOKEN_SECRET = os.getenv("TOKEN_SECRET", "")
 
@@ -33,8 +36,8 @@ class LoginInput(BaseModel):
 
 def get_connection():
     if not DATABASE_URL:
-        raise HTTPException(status_code=503, detail="Guestbook database is not configured yet.")
-    return psycopg.connect(DATABASE_URL, connect_timeout=8)
+        raise HTTPException(status_code=503, detail="Guestbook database is not configured. Set DATABASE_URL in Vercel Environment Variables.")
+    return psycopg.connect(DATABASE_URL, connect_timeout=10)
 
 def ensure_table(conn):
     conn.execute("""
@@ -58,8 +61,7 @@ def validate_token(token):
         expected = hmac.new(TOKEN_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(signature, expected):
             return False
-        expiry = int(payload.split(":", 1)[0])
-        return expiry > int(time.time())
+        return int(payload.split(":", 1)[0]) > int(time.time())
     except (ValueError, IndexError):
         return False
 
@@ -68,23 +70,37 @@ def require_admin(authorization):
         raise HTTPException(status_code=401, detail="Authentication required.")
     if not validate_token(authorization[7:].strip()):
         raise HTTPException(status_code=401, detail="Invalid or expired admin token.")
-    return True
+
+@app.get("/")
+def root():
+    return {"ok": True, "service": "Bhavesh & Heena Wedding Guestbook", "docs": "/docs"}
 
 @app.get("/api/health")
 def health():
     return {"ok": True, "database_configured": bool(DATABASE_URL)}
 
+@app.get("/api/health/database")
+def database_health():
+    try:
+        with get_connection() as conn:
+            conn.execute("SELECT 1")
+        return {"ok": True, "database_connected": True}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database connection failed. Check DATABASE_URL and Neon settings.")
+
 @app.post("/api/wishes")
-def create_wish(body: WishInput, request: Request):
-    # Lightweight honeypot and length validation; database-backed storage persists across deployments.
-    if len(body.name.strip()) == 0 or len(body.message.strip()) == 0:
+def create_wish(body: WishInput):
+    name, message = body.name.strip(), body.message.strip()
+    if not name or not message:
         raise HTTPException(status_code=422, detail="Please enter your name and blessings.")
     try:
         with get_connection() as conn:
             ensure_table(conn)
             row = conn.execute(
                 "INSERT INTO wedding_wishes (name, message) VALUES (%s, %s) RETURNING id",
-                (body.name.strip(), body.message.strip())
+                (name, message),
             ).fetchone()
             conn.commit()
         return {"ok": True, "id": row[0]}
@@ -98,9 +114,8 @@ def admin_login(body: LoginInput):
     if not ADMIN_PASSWORD or not TOKEN_SECRET:
         raise HTTPException(status_code=503, detail="Admin login is not configured. Set ADMIN_PASSWORD and TOKEN_SECRET.")
     if not hmac.compare_digest(body.password.encode(), ADMIN_PASSWORD.encode()):
-        # Avoid exposing which part of the login was incorrect.
         raise HTTPException(status_code=401, detail="Incorrect password.")
-    payload = f"{int(time.time()) + 60 * 60 * 12}:{secrets.token_urlsafe(12)}"
+    payload = f"{int(time.time()) + 43200}:{secrets.token_urlsafe(18)}"
     return {"token": sign_token(payload), "expires_in": 43200}
 
 @app.get("/api/admin/wishes")
@@ -113,9 +128,9 @@ def list_wishes(authorization: str = Header(default="")):
                 "SELECT id, name, message, created_at FROM wedding_wishes ORDER BY created_at DESC LIMIT 1000"
             ).fetchall()
         return {"wishes": [
-            {"id": row[0], "name": row[1], "message": row[2],
-             "created_at": row[3].astimezone(timezone.utc).isoformat()}
-            for row in rows
+            {"id": r[0], "name": r[1], "message": r[2],
+             "created_at": r[3].astimezone(timezone.utc).isoformat()}
+            for r in rows
         ]}
     except HTTPException:
         raise
@@ -128,17 +143,12 @@ def delete_wish(wish_id: int, authorization: str = Header(default="")):
     try:
         with get_connection() as conn:
             ensure_table(conn)
-            cursor = conn.execute("DELETE FROM wedding_wishes WHERE id = %s", (wish_id,))
+            cur = conn.execute("DELETE FROM wedding_wishes WHERE id = %s", (wish_id,))
             conn.commit()
-            if cursor.rowcount == 0:
+            if cur.rowcount == 0:
                 raise HTTPException(status_code=404, detail="Blessing not found.")
         return {"ok": True}
     except HTTPException:
         raise
     except Exception:
         raise HTTPException(status_code=503, detail="Could not delete this blessing.")
-
-
-@app.get("/")
-def root():
-    return {"ok": True, "message": "Wedding backend is running"}
