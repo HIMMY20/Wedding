@@ -358,7 +358,7 @@ function WeddingInvite() {
           >
             {IMG.venue ? (
               <img
-                src="./Venue.jpeg"
+                src={IMG.venue}
                 alt={VENUE.name}
               />
             ) : (
