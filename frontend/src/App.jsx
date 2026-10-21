@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   Daisy,
@@ -38,12 +38,25 @@ const Photo = ({ src, fallback }) => {
 }
 
 function WeddingInvite() {
+  const audioRef = useRef(null)
   const [opened, setOpened] = useState(false)
   const [revealed, setRevealed] = useState(false)
 
   const [guestInput, setGuestInput] = useState('')
   const [wishInput, setWishInput] = useState('')
   const [guestStatus, setGuestStatus] = useState('')
+
+  // Start the wedding background music when the guest opens the invitation.
+  const handleOpenInvitation = () => {
+    setOpened(true)
+    const audio = audioRef.current
+    if (audio) {
+      audio.volume = 0.35
+      audio.play().catch(() => {
+        // Some browsers may block playback; the music button can be used to retry.
+      })
+    }
+  }
 
   const guest = new URLSearchParams(
     window.location.search
@@ -125,11 +138,53 @@ function WeddingInvite() {
 
   return (
     <div>
+      <audio
+        ref={audioRef}
+        src="/wedding-music.mp3"
+        loop
+        preload="auto"
+        aria-label="Wedding background music"
+      />
+
       {!opened && (
         <Cover
           guest={guest}
-          onOpened={() => setOpened(true)}
+          onOpened={handleOpenInvitation}
         />
+      )}
+
+      {opened && (
+        <button
+          type="button"
+          onClick={() => {
+            const audio = audioRef.current
+            if (!audio) return
+            if (audio.paused) {
+              audio.play().catch(() => {})
+            } else {
+              audio.pause()
+            }
+          }}
+          aria-label="Toggle wedding background music"
+          title="Play / pause wedding music"
+          style={{
+            position: 'fixed',
+            right: 16,
+            bottom: 16,
+            zIndex: 1000,
+            width: 46,
+            height: 46,
+            borderRadius: '50%',
+            border: '1px solid rgba(255,255,255,0.7)',
+            background: 'rgba(28, 43, 65, 0.88)',
+            color: '#fff',
+            fontSize: 20,
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.18)'
+          }}
+        >
+          🎵
+        </button>
       )}
 
       {opened && <Petals />}
