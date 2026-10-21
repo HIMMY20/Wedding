@@ -5,7 +5,7 @@ import couple from './assets/couple.png'
 // If the file is missing, the invitation falls back to the included illustration.
 const hero = '/BH.png'
 const pick = (files) => Object.values(files)[0] ?? null
-const venue = pick(import.meta.glob('./assets/venue.{jpg,JPG,jpeg,png}', { eager: true, import: 'default' }))
+const venue = pick(import.meta.glob('./assets/Venue.jpeg', { eager: true, import: 'default' }))
 export const IMG = { couple, hero, venue }
 
 export const GROOM = 'Bhavesh'
