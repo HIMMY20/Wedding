@@ -231,7 +231,7 @@ function WeddingInvite() {
             </div>
 
             <small>
-              Grandson of Smt. Dagiyadevi Mishrilalji Chauhan
+              Grandson of Smt. Dhagiyadevi Mishrilalji Chauhan
               <br />
               Son of Smt. Anita & Shri Yogeshji Chauhan
             </small>
@@ -358,7 +358,7 @@ function WeddingInvite() {
           >
             {IMG.venue ? (
               <img
-                src={IMG.venue}
+                src="./Venue.jpeg"
                 alt={VENUE.name}
               />
             ) : (

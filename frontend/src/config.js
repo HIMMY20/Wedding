@@ -14,7 +14,7 @@ export const WEDDING_DATE = '2026-12-03T08:15:00+05:30' // countdown target
 
 export const VENUE = {
   name: 'Khaki Resort',
-  line1: 'NH-162, opposite H.P. Petrol Pump,',
+  line1: 'NH 162, Opposite HP Petrol Pump, Village Barr',
   line2: 'Dist. Pali, Rajasthan',
   mapUrl:
     'https://www.google.com/maps/search/?api=1&query=' +
