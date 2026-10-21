@@ -49,7 +49,7 @@ function WeddingInvite() {
     setOpened(true)
     const audio = audioRef.current
     if (audio) {
-      audio.volume = 0.35
+      audio.volume = 1.0
       audio.play().catch(() => {
         // Some browsers may block playback; the music button can be used to retry.
       })
